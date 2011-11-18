@@ -90,7 +90,22 @@ class ::MethodProxy
         end
       end
     end
+  end
+  
+  def self.unproxy_class_method klass, meth
+    raise "klass argument must be a Class" unless klass.is_a?(Class) || klass.is_a?(Module)
+    raise "method argument must be a Symbol" unless meth.is_a?(Symbol)
     
+    return unless (class_entries = @@proxied_class_methods[klass])
+    return unless (orig_unbound_meth = class_entries[meth])
     
+    $orig_unbound_meth = orig_unbound_meth
+    $method_proxy_meth = meth
+    
+    class << klass
+      self.instance_eval do
+        define_method $method_proxy_meth, $orig_unbound_meth
+      end
+    end
   end
 end
