@@ -24,39 +24,43 @@ class ::MethodProxy
   # end
   #
   
-  @@proxied_methods = {}
+  @@proxied_instance_methods = {}
   @@proxied_class_methods = {}
   
   def self.proxy_instance_method(klass, meth, &block)
     raise "klass argument must be a Class" unless klass.is_a?(Class) || klass.is_a?(Module)
     raise "method argument must be a Symbol" unless meth.is_a?(Symbol)
     raise "must supply block argument" unless block_given?
-    klass.class_eval %(
-      @@proxied_methods ||= {}
-      if @@proxied_methods[meth]
+    
+    #$method_proxy_meth = meth
+    #$method_proxy_klass = klass
+    proc = Proc.new(&block)
+    
+    @@proxied_instance_methods[$method_proxy_klass] ||= {}
+    
+    klass.class_eval do
+      if @@proxied_instance_methods[klass][meth]
         raise ::MethodProxyException, "The method has already been proxied"
       end
-      @@proxied_methods[meth] = instance_method meth
+      @@proxied_instance_methods[klass][meth] = instance_method meth
       undef_method(meth)
-      
-      proc = Proc.new(&block)
-      
+    
       define_method meth do |*args|
-        ret = proc.call(self, @@proxied_methods[meth].bind(self), *args)
+        ret = proc.call(self, @@proxied_instance_methods[klass][meth].bind(self), *args)
         return ret
       end
-    )
+    end
   end
-
+  
   def self.unproxy_instance_method(klass, meth)
     raise "klass argument must be a Class" unless klass.is_a?(Class) || klass.is_a?(Module)
     raise "method argument must be a Symbol" unless meth.is_a?(Symbol)
     
+    return unless @@proxied_instance_methods[klass][meth].is_a?(UnboundMethod)    # pass-through rather than raise
+    proc = @@proxied_instance_methods[klass][meth]
     klass.class_eval %(
-      return unless class_variable_defined?("@@proxied_methods")
-      return unless @@proxied_methods[meth].is_a?(UnboundMethod)    # pass-through rather than raise
       
-      define_method(meth, @@proxied_methods[meth])
+      define_method(meth, proc)
     )
   end
   
@@ -72,9 +76,10 @@ class ::MethodProxy
     $method_proxy_klass = klass
     $method_proxy_proc = Proc.new(&block)
     
+    @@proxied_class_methods[$method_proxy_klass] ||= {}
+    
     class << klass
       self.instance_eval do
-        @@proxied_class_methods[$method_proxy_klass] ||= {}
         if @@proxied_class_methods[$method_proxy_klass][$method_proxy_meth]
           raise ::MethodProxyException, "The method has already been proxied"
         end
