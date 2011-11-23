@@ -26,27 +26,35 @@ class ::MethodProxy
   
   @@proxied_instance_methods = {}
   @@proxied_class_methods = {}
+
+  def self.register_original_instance_method(klass, meth_name, meth_obj)
+    @@proxied_instance_methods[klass][meth_name] = meth_obj
+  end
+  
+  def self.original_instance_method(klass, meth_name)
+    @@proxied_instance_methods[klass][meth_name]
+  end
   
   def self.proxy_instance_method(klass, meth, &block)
     raise "klass argument must be a Class" unless klass.is_a?(Class) || klass.is_a?(Module)
     raise "method argument must be a Symbol" unless meth.is_a?(Symbol)
     raise "must supply block argument" unless block_given?
     
-    #$method_proxy_meth = meth
-    #$method_proxy_klass = klass
     proc = Proc.new(&block)
     
-    @@proxied_instance_methods[$method_proxy_klass] ||= {}
+    @@proxied_instance_methods[klass] ||= {}
+    if @@proxied_instance_methods[klass][meth]
+      raise ::MethodProxyException, "The method has already been proxied"
+    end
     
     klass.class_eval do
-      if @@proxied_instance_methods[klass][meth]
-        raise ::MethodProxyException, "The method has already been proxied"
-      end
-      @@proxied_instance_methods[klass][meth] = instance_method meth
+      
+      MethodProxy.register_original_instance_method(klass, meth, instance_method(meth))
+      
       undef_method(meth)
     
       define_method meth do |*args|
-        ret = proc.call(self, @@proxied_instance_methods[klass][meth].bind(self), *args)
+        ret = proc.call(self, MethodProxy.original_instance_method(klass, meth).bind(self), *args)
         return ret
       end
     end
@@ -58,10 +66,8 @@ class ::MethodProxy
     
     return unless @@proxied_instance_methods[klass][meth].is_a?(UnboundMethod)    # pass-through rather than raise
     proc = @@proxied_instance_methods[klass][meth]
-    klass.class_eval %(
-      
-      define_method(meth, proc)
-    )
+    
+    klass.class_eval{ define_method(meth, proc) }
   end
   
   #TODOs: 
