@@ -44,6 +44,22 @@ class ::MethodProxy
   end
   
   
+  def self.classes_with_proxied_class_methods
+    @@mx.synchronize do
+      return @@proxied_class_methods.keys.collect{|k| Class.const_get(k)}
+    end
+  end
+  
+  def self.proxied_class_methods_for(klass)
+    raise "klass argument must be a Class" unless klass.is_a?(Class) || klass.is_a?(Module)
+    @@mx.synchronize do
+      meth_hash_for_klass = @@proxied_class_methods[klass.name.to_sym]
+      return [] if !meth_hash_for_klass || meth_hash_for_klass.empty?
+      return meth_hash_for_klass.keys
+    end
+  end
+  
+  
   #### WARNING: NON-THREAD-SAFE methods for internal use; generally, they should not be called by ####
   ####                                 any external code                                          ####
   def self.register_original_instance_method(klass, meth_name, meth_obj)
@@ -150,6 +166,11 @@ class ::MethodProxy
           define_method $method_proxy_meth, $orig_unbound_meth
         end
       end
+      
+      # clean up storage
+      @@proxied_class_methods[klass.name.to_sym].delete(meth)
+      remaining_proxied_class_methods = @@proxied_class_methods[klass.name.to_sym]
+      @@proxied_class_methods.delete(klass.name.to_sym) if remaining_proxied_class_methods.empty?
     end
   end
 end

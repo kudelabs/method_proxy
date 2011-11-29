@@ -34,14 +34,20 @@ class MethodProxyTest < Test::Unit::TestCase
   
   def test_proxy_unproxy_class_method
     assert_equal "4$5", LabRabbit.lr_class_method(4, 5)
+    assert [].eql?(MethodProxy.classes_with_proxied_class_methods)
+    assert_equal [], MethodProxy.proxied_class_methods_for(LabRabbit)
 
     MethodProxy.proxy_class_method(LabRabbit, :lr_class_method) do |obj, meth, c, d|
       res = meth.call c, d
       next "[#{res}]"   # within Proc's should be 'next' instead of 'return' -- in order to avoid returning from the caller method
     end
     assert_equal "[4$5]", LabRabbit.lr_class_method(4, 5)
-
+    assert [LabRabbit].eql?(MethodProxy.classes_with_proxied_class_methods)
+    assert_equal [:lr_class_method], MethodProxy.proxied_class_methods_for(LabRabbit)
+    
     MethodProxy.unproxy_class_method(LabRabbit, :lr_class_method)
     assert_equal "4$5", LabRabbit.lr_class_method(4, 5)
+    assert [].eql?(MethodProxy.classes_with_proxied_class_methods)
+    assert_equal [], MethodProxy.proxied_class_methods_for(LabRabbit)
   end
 end
