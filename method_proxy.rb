@@ -91,6 +91,11 @@ class ::MethodProxy
       proc = @@proxied_instance_methods[klass.name.to_sym][meth]
     
       klass.class_eval{ define_method(meth, proc) }
+      
+      # clean up storage
+      @@proxied_instance_methods[klass.name.to_sym].delete(meth)
+      remaining_proxied_instance_methods = @@proxied_instance_methods[klass.name.to_sym]
+      @@proxied_instance_methods.delete(klass.name.to_sym) if remaining_proxied_instance_methods.empty?
     end
   end
   

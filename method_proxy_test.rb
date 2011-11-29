@@ -28,6 +28,8 @@ class MethodProxyTest < Test::Unit::TestCase
     
     MethodProxy.unproxy_instance_method(LabRabbit, :lr_instance_method)
     assert_equal "2-3", lrabbit.lr_instance_method(2, 3)
+    assert [].eql?(MethodProxy.classes_with_proxied_instance_methods)
+    assert_equal [], MethodProxy.proxied_instance_methods_for(LabRabbit)
   end
   
   def test_proxy_unproxy_class_method
