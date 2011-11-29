@@ -15,12 +15,16 @@ class MethodProxyTest < Test::Unit::TestCase
   def test_proxy_unproxy_instance_method
     lrabbit = LabRabbit.new
     assert_equal "2-3", lrabbit.lr_instance_method(2, 3)
+    assert [].eql?(MethodProxy.classes_with_proxied_instance_methods)
+    assert_equal [], MethodProxy.proxied_instance_methods_for(LabRabbit)
     
     MethodProxy.proxy_instance_method(LabRabbit, :lr_instance_method) do |obj, meth, a, b|
       res = meth.call a, b
       next "<#{res}>"   # within Proc's should be 'next' instead of 'return' -- in order to avoid returning from the caller method
     end
     assert_equal "<2-3>", lrabbit.lr_instance_method(2, 3)
+    assert [LabRabbit].eql?(MethodProxy.classes_with_proxied_instance_methods)
+    assert_equal [:lr_instance_method], MethodProxy.proxied_instance_methods_for(LabRabbit)
     
     MethodProxy.unproxy_instance_method(LabRabbit, :lr_instance_method)
     assert_equal "2-3", lrabbit.lr_instance_method(2, 3)

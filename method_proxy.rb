@@ -28,7 +28,24 @@ class ::MethodProxy
   @@proxied_instance_methods = {}
   @@proxied_class_methods = {}
   
-  #### WARNING: NON-THREAD-SAFE methods; generally they should not be used by any external code ####
+  def self.classes_with_proxied_instance_methods
+    @@mx.synchronize do
+      return @@proxied_instance_methods.keys.collect{|k| Class.const_get(k)}
+    end
+  end
+  
+  def self.proxied_instance_methods_for(klass)
+    raise "klass argument must be a Class" unless klass.is_a?(Class) || klass.is_a?(Module)
+    @@mx.synchronize do
+      meth_hash_for_klass = @@proxied_instance_methods[klass.name.to_sym]
+      return [] if !meth_hash_for_klass || meth_hash_for_klass.empty?
+      return meth_hash_for_klass.keys
+    end
+  end
+  
+  
+  #### WARNING: NON-THREAD-SAFE methods for internal use; generally, they should not be called by ####
+  ####                                 any external code                                          ####
   def self.register_original_instance_method(klass, meth_name, meth_obj)
     @@proxied_instance_methods[klass.name.to_sym][meth_name] = meth_obj
   end
@@ -36,7 +53,7 @@ class ::MethodProxy
   def self.original_instance_method(klass, meth_name)
     @@proxied_instance_methods[klass.name.to_sym][meth_name]
   end
-  ##################################################################################################
+  ###################################################################################################
   
   def self.proxy_instance_method(klass, meth, &block)
     raise "klass argument must be a Class" unless klass.is_a?(Class) || klass.is_a?(Module)
