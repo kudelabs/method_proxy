@@ -24,11 +24,14 @@ class ::MethodProxy
   # end
   #
   
+  ##################################### CLASS VARIABLES #############################################
+  
   @@mx = Mutex.new
   @@proxied_instance_methods = {}
   @@proxied_class_methods = {}
   @@tmp_binding = nil
   
+  #################################### SOME HELPER METHODS ##########################################
   def self.classes_with_proxied_instance_methods
     @@mx.synchronize do
       return @@proxied_instance_methods.keys.collect{|k| Class.const_get(k)}
@@ -84,8 +87,27 @@ class ::MethodProxy
     @@tmp_binding = nil
   end
   
-  ###################################################################################################
+  ####################################### MAIN STUFF #################################################
   public
+  
+  # "Tap" into instance method calls - subvert original method with the supplied block; preserve
+  # reference to the original method so that it can still be called or restored later on.
+  #
+  # Common idiom:
+  # MethodProxy.proxy_instance_method(SomeClass, :some_instance_method) do |obj, original_instance_meth, *args|
+  #
+  #   # do stuff before calling original method
+  #     ... ... ...
+  #
+  #   # call the original method (already bound to object obj), with supplied arguments
+  #   result = original_instance_meth.call(*args)
+  #
+  #   # do stuff after calling original method
+  #     ... ... ...
+  #
+  #   # return the actual return value
+  #   result
+  # end
   def self.proxy_instance_method(klass, meth, &block)
     raise "klass argument must be a Class" unless klass.is_a?(Class) || klass.is_a?(Module)
     raise "method argument must be a Symbol" unless meth.is_a?(Symbol)
@@ -113,6 +135,7 @@ class ::MethodProxy
     end
   end
   
+  # Restore the original instance method for objects of class klass
   def self.unproxy_instance_method(klass, meth)
     raise "klass argument must be a Class" unless klass.is_a?(Class) || klass.is_a?(Module)
     raise "method argument must be a Symbol" unless meth.is_a?(Symbol)
@@ -130,9 +153,24 @@ class ::MethodProxy
     end
   end
   
-  #TODOs: 
-  # - move storage of proxied methods entirely into MethodProxy class rather than store them inside proxied classes;
-  # - switch to use of class methods instead of global variables
+  # "Tap" into class method calls - subvert original method with the supplied block; preserve
+  # reference to the original method so that it can still be called or restored later on.
+  #
+  # Common idiom:
+  # MethodProxy.proxy_class_method(SomeClass, :some_class_method) do |klass, original_class_meth, *args|
+  #
+  #   # do stuff before calling original method
+  #     ... ... ...
+  #
+  #   # call original method (already bound to SomeClass), with supplied arguments
+  #   result = original_class_meth.call(*args)
+  #
+  #   # do stuff after calling original method
+  #     ... ... ...
+  #
+  #   # return the actual return value
+  #   result
+  # end
   def self.proxy_class_method klass, meth, &block
     raise "klass argument must be a Class" unless klass.is_a?(Class) || klass.is_a?(Module)
     raise "method argument must be a Symbol" unless meth.is_a?(Symbol)
@@ -169,7 +207,8 @@ class ::MethodProxy
       reset_tmp_binding!
     end
   end
-    
+  
+  # Restore the original class method for klass
   def self.unproxy_class_method klass, meth
     raise "klass argument must be a Class" unless klass.is_a?(Class) || klass.is_a?(Module)
     raise "method argument must be a Symbol" unless meth.is_a?(Symbol)

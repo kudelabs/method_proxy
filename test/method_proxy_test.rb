@@ -8,7 +8,7 @@ class LabRabbit
   end
 end
 
-require File.join(File.expand_path(File.dirname(__FILE__)), "method_proxy")
+require File.join(File.expand_path(File.dirname(__FILE__)), "../lib/method_proxy")
 require "test/unit"
 
 class MethodProxyTest < Test::Unit::TestCase
