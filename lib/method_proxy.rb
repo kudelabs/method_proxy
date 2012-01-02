@@ -1,29 +1,8 @@
-class ::MethodProxyException < Exception
+class MethodProxyException < Exception
 
 end
 
-# Functionality of this class allows to easily proxy instance method meth calls on objects
-# of class klass. 
-class ::MethodProxy
-  # Proxy instance method meth calls on objects of class klass. Replaces original method
-  # meth with call to Proc made from the supplied block. The block should accept the following
-  # arguments:
-  #   1) object on which the call is made;
-  #   2) original method bound to the object on which call is made;
-  #   3-...) *args - arguments of original function call.
-  #
-  # Example.
-  # Say, we want to print arguments and return values of "some_method" method on objects of
-  # class SomeClass, to STDOUT. The way to do this with proxy_instance_method is:
-  # MethodProxy.proxy_instance_method(SomeClass, :some_method) do |obj, bound_meth, *args|
-  #   puts "\nMethod call to SomeClass#some_method received."
-  #   puts "Arguments: #{args.inspect}"
-  #   puts "Executing..."
-  #   ret = bound_meth.call(*args)
-  #   puts "Return value: #{ret.inspect}.\n"
-  # end
-  #
-  
+class MethodProxy
   ##################################### CLASS VARIABLES #############################################
   
   @@mx = Mutex.new
