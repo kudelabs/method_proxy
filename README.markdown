@@ -101,8 +101,8 @@ arrange interception of actions of interest (say, those that change database sta
 actions' parameters:
 
 	tbd = {
-	  UsersController => %w(create update delete).collect(&:to_sym),
-	  PostsController => %w(create update delete).collect(&:to_sym)
+	  UsersController => [:create, :update, :delete],
+	  PostsController => [:create, :update, :delete]
 	}
 
 	tbd.each_pair do |cntrlr, actns|
