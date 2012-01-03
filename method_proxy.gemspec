@@ -7,6 +7,6 @@ Gem::Specification.new do |s|
 code is provided with reference to the object, reference to the original method and list of arguments.)
   s.authors     = ["Jevgenij Solovjov"]
   s.email       = 'jevgenij@kudelabs.com'
-  s.files       = ["lib/method_proxy.rb", "test/method_proxy_test.rb", "README"]
+  s.files       = ["lib/method_proxy.rb", "test/method_proxy_test.rb", "README.markdown"]
   s.homepage    = "https://github.com/kudelabs/method_proxy"
 end
