@@ -13,7 +13,8 @@ generated from supplied block. Supplied block should expect following
 arguments:
   1) object on which the call is made;
   2) original method bound to the object on which call is made;
-  3-...) *args - arguments of original function call.
+  *args - arguments of original method call;
+  &block - block passed to the original method call. 
 
 An important thing to remember, is the &block should not use 'return <result>' 
 and should use 'next <result>' construct instead - as 'return' will result in 
@@ -33,8 +34,9 @@ Replaces original class method with method generated from supplied block.
 Supplied block should expect following arguments:
   1) class on which the call is made;
   2) original method bound to that class;
-  3-...) *args - arguments of original function call.
-
+  *args - arguments of original method call;
+  &block - block passed to the original method call.
+  
 Just like in case of proxy_instance_method, &block should use 'next <result>' 
 construct instead of 'return <result>' or LocalJumpError will be raised.
 
@@ -129,7 +131,6 @@ Later, the resulting "records" can be "replayed" in automated tests.
 
 There is a number of known issues:
 
-- currently, method_proxy cannot tap into method calls that accept blocks;
 - have to remember to use "next <result>" instead of "return <result>" syntax;
 - if one needs to tap into methods that are dynamically created, e.g. 
 'find_user_by_id' created on-the-fly with the help of 'method_missing' in 

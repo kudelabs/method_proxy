@@ -1,3 +1,5 @@
+require 'thread' if RUBY_VERSION <"1.9"
+
 class MethodProxyException < Exception
 
 end
@@ -73,13 +75,13 @@ class MethodProxy
   # reference to the original method so that it can still be called or restored later on.
   #
   # Common idiom:
-  # MethodProxy.proxy_instance_method(SomeClass, :some_instance_method) do |obj, original_instance_meth, *args|
+  # MethodProxy.proxy_instance_method(SomeClass, :some_instance_method) do |obj, original_instance_meth, *args, &block|
   #
   #   # do stuff before calling original method
   #     ... ... ...
   #
   #   # call the original method (already bound to object obj), with supplied arguments
-  #   result = original_instance_meth.call(*args)
+  #   result = original_instance_meth.call(*args, &block)
   #
   #   # do stuff after calling original method
   #     ... ... ...
@@ -106,8 +108,8 @@ class MethodProxy
       
         undef_method(meth)
     
-        define_method meth do |*args|
-          ret = proc.call(self, MethodProxy.original_instance_method(klass, meth).bind(self), *args)
+        define_method meth do |*args, &blk|
+          ret = proc.call(self, MethodProxy.original_instance_method(klass, meth).bind(self), *args, &blk)
           return ret
         end
       end
@@ -136,13 +138,13 @@ class MethodProxy
   # reference to the original method so that it can still be called or restored later on.
   #
   # Common idiom:
-  # MethodProxy.proxy_class_method(SomeClass, :some_class_method) do |klass, original_class_meth, *args|
+  # MethodProxy.proxy_class_method(SomeClass, :some_class_method) do |klass, original_class_meth, *args, &block|
   #
   #   # do stuff before calling original method
   #     ... ... ...
   #
   #   # call original method (already bound to SomeClass), with supplied arguments
-  #   result = original_class_meth.call(*args)
+  #   result = original_class_meth.call(*args, &block)
   #
   #   # do stuff after calling original method
   #     ... ... ...
@@ -176,8 +178,8 @@ class MethodProxy
         remove_method meth
       
         self.instance_eval do
-          define_method(meth) do |*args|
-            ret = proc.call(self, @@proxied_class_methods[klass.name.to_sym][meth].bind(self), *args)
+          define_method(meth) do |*args, &blk|
+            ret = proc.call(self, @@proxied_class_methods[klass.name.to_sym][meth].bind(self), *args, &blk)
             return ret
           end
         end
