@@ -167,6 +167,11 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+### CREDITS
+Special thanks for their invaluable feedback, advice, suggestions and fixes to:
+wtaysom, adehvadeh, shaokun and rainchen.
+
+
 ### PROJECT ON THE WEB 
 
 The project is hosted on GitHub:
