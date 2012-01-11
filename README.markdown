@@ -4,6 +4,11 @@
 on objects of specific class or on specific classes. 
 
 
+### INSTALLATION
+
+* `gem install method_proxy`
+
+
 ### API 
 
 * `MethodProxy.proxy_instance_method(SomeClass, :some_instance_method, &block)`
