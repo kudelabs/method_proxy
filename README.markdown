@@ -174,7 +174,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ### CREDITS
 Special thanks for their invaluable feedback, advice, suggestions and fixes to:
-wtaysom, adehvadeh, shaokun and rainchen.
+wtaysom, adevadeh, shaokun and rainchen.
 
 
 ### PROJECT ON THE WEB 
